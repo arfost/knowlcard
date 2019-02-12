@@ -1,6 +1,6 @@
 import { BaseKCElement } from '../abstract-elements/kc-base-element.js'
 import { html } from 'https://unpkg.com/@polymer/lit-element@latest/lit-element.js?module';
-import { onPushList, onPushData } from '../helper-scripts/lit-directiv.js';
+import { onPushData } from '../helper-scripts/lit-directiv.js';
 import Dao from '../../data.js';
 
 export class KnowlCard extends BaseKCElement {
@@ -42,7 +42,7 @@ export class KnowlCard extends BaseKCElement {
         </style>
         <div class="card">
             ${onPushData(
-                Dao.getRef(this.card),
+                Dao.getCardRef(this.card),
                 card=>html`${card}`,
                 html`loading`,
                 html`error loading the card`

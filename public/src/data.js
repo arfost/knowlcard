@@ -4,8 +4,11 @@ class Dao {
     }
 
     getListRef(ref) {
-        console.log(ref)
-        return this.getRef(ref)
+        return new ListReference(this.getRef(ref))
+    }
+
+    getCardRef(ref) {
+        return new BaseReference(this.getRef(ref))
     }
 
     getRef(path, params = {}) {
@@ -19,11 +22,41 @@ class Dao {
 
 class Reference {
 
-    constructor() {
-        this.listener = [];
+    constructor(ref) {
+        this.ref = ref;
+        this.ref.on("value",
+            value => this.callListener(value))
     }
     on(event, listener) {
-        this.listener.push(listener);
+        this.listener = listener;
+        if (this.data) {
+            this.listener(this.data);
+        }
+    }
+
+    callListener(snap) {
+        snap = this.treateDatas(snap)
+        this.data = snap;
+        if (this.listener) {
+            this.listener(this.data);
+        }
+    }
+}
+
+class BaseReference extends Reference {
+
+    treateDatas(data) {
+        return data.val();
+    }
+
+}
+
+class ListReference extends Reference {
+
+    treateDatas(snap) {
+        let data = snap.val();
+        data = [...data.keys()];
+        return data;
     }
 }
 

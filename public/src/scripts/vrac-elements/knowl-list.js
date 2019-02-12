@@ -1,6 +1,6 @@
 import { BaseKCElement } from '../abstract-elements/kc-base-element.js';
 import { html } from 'https://unpkg.com/@polymer/lit-element@latest/lit-element.js?module';
-import { onPushList, onPushData } from '../helper-scripts/lit-directiv.js';
+import { onPushData } from '../helper-scripts/lit-directiv.js';
 import Dao from '../../data.js';
 
 
@@ -22,6 +22,8 @@ export class KnowlList extends BaseKCElement {
         .list{
             background: #e2e1e0;
             display:flex;
+            flex-wrap:wrap;
+            justify-content:space-evenly;
           }`
     }
 
@@ -31,7 +33,7 @@ export class KnowlList extends BaseKCElement {
             ${this.selfStyle}
         </style>
         <div class="list">
-        ${onPushList(
+        ${onPushData(
                 Dao.getListRef("cards"),
                 cardlist=>cardlist.map(card=>html`<knowl-card .card="cards/${card}"></knowl-card>`),
                 html`loading`,
