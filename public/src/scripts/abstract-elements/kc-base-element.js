@@ -1,4 +1,4 @@
-import { LitElement } from 'https://unpkg.com/@polymer/lit-element@latest/lit-element.js?module';
+import { LitElement, html, css } from 'https://unpkg.com/@polymer/lit-element@latest/lit-element.js?module';
 
 export class BaseKCElement extends LitElement {
     constructor() {
@@ -13,6 +13,16 @@ export class BaseKCElement extends LitElement {
         return this.constructor.is
     }
 
+    get styles() {
+        return html`<style>
+            ${this.sharedStyles}
+            ${this.selfStyles}
+        </style>`
+    }
+
+    get selfStyles() {
+        return ``;
+    }
     get sharedStyles() {
         return `
             .button{
@@ -34,6 +44,9 @@ export class BaseKCElement extends LitElement {
             }
             .horizontal{
                 flex-direction:row;
+            }
+            .wrap{
+                flex-wrap:wrap;
             }
             .vertical{
                 flex-direction:column;

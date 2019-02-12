@@ -1,11 +1,11 @@
 import { BaseKCElement } from '../abstract-elements/kc-base-element.js'
-import { html } from 'https://unpkg.com/@polymer/lit-element@latest/lit-element.js?module';
+import { html, css } from 'https://unpkg.com/@polymer/lit-element@latest/lit-element.js?module';
 import { onPushData } from '../helper-scripts/lit-directiv.js';
 import Dao from '../../data.js';
 
 export class KnowlCard extends BaseKCElement {
     static get is() { return 'knowl-card' }
-        //we need to init values in constructor
+    //we need to init values in constructor
     constructor() {
         super();
     }
@@ -16,7 +16,15 @@ export class KnowlCard extends BaseKCElement {
         }
     }
 
-    get selfStyle() {
+    affCard(card) {
+        console.log(`card ${this.card} is rendering`, card)
+        return html`
+        <div class="title">${card.title}</div>
+        <div class="body">${card.body.map(part => html`<p>${part}</p>`)}</div>
+        <div class="footer">${card.keywords.map(part => html`<span>${part}</span>`)}</div>`;
+    }
+
+    get selfStyles() {
         return `
         .card {
             background: #fff;
@@ -36,17 +44,18 @@ export class KnowlCard extends BaseKCElement {
     }
 
     render() {
-            return html `
-        <style>
-            ${this.selfStyle}
-        </style>
+        if (!this.ref) {
+            this.ref = Dao.getCardRef(this.card);
+        }
+        return html`
+        ${this.styles}
         <div class="card">
             ${onPushData(
-                Dao.getCardRef(this.card),
-                card=>html`${card}`,
-                html`loading`,
-                html`error loading the card`
-            )}
+            this.ref,
+            card => this.affCard(card),
+            html`loading`,
+            html`card has no datas`
+        )}
         </div>`
     }
 }
