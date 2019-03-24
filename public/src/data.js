@@ -1,24 +1,71 @@
 class Dao {
     constructor() {
-        console.log('data is instancied')
+        console.log("data is instancied");
     }
 
-    getListRef(ref) {
-        return new ListReference(this.getRef(ref))
+    getListRef() {
+        return new ListReference();
     }
 
-    getCardRef(ref) {
-        console.log("ref path is ", ref)
-        return new CardReference(this.getRef(ref))
+    getCardRef(id, base) {
+        return new CardReference(id, base);
+    }
+}
+
+class FireReference {
+
+    get params() {
+        return {}
     }
 
-    getRef(path, params = {}) {
+    initConnection() {
+        console.log('instance', this.id)
+        this.data = {};
+        let connection = {};
+        if (this.base) {
+            connection.base = this.initSource(this.sources.base, this.params.base);
+        }
+        for (let source in this.sources) {
+            if (source === "base") {
+                continue;
+            }
+            this.data[source] = this.defaultValues[source];
+            connection[source] = this.initSource(this.sources[source], this.params[source]);
+            connection[source].on('value', snap => {
+                let tmp = snap.val();
+                console.log("bug incoming ? ", this.id, tmp, source, this.data);
+                this.data[source] = tmp;
+                this.newDatas();
+            })
+        }
+        console.log("data pret", this.id, this.data)
+        this.connection = connection;
+        this.ready = true;;
+        this.newDatas();
+    }
+
+    on(event, listener) {
+        this.listener = listener;
+        if (this.formattedData) {
+            this.listener(this.formattedData);
+        }
+    }
+
+    initSource(path, params = []) {
         let nodeRef;
-        if (!path.includes('-new-')) {
-            nodeRef = firebase.app().database().ref(path);
+        if (!path.includes("--new--")) {
+            nodeRef = firebase
+                .app()
+                .database()
+                .ref(path);
         } else {
-            path = path.replace("-new-")
-            nodeRef = firebase.app().database.ref(path).push()
+            path = path.replace("--new--", "");
+            nodeRef = firebase
+                .app()
+                .database()
+                .ref(path)
+                .push();
+            this.id = nodeRef.key;
         }
 
         for (let param in params) {
@@ -26,71 +73,146 @@ class Dao {
         }
         return nodeRef;
     }
-}
 
-class FireReference {
 
-    constructor(ref) {
-        this.ref = ref;
-        this.ref.on("value",
-            value => this.callListener(value))
-    }
 
-    on(event, listener) {
-        this.listener = listener;
-        if (this.data) {
-            this.listener(this.data);
+    save() {
+        let datas = this.presave(...Object.values(this.data), this.base);
+        for (let source in this.connection) {
+            console.log("saving ", source, datas[source])
+            if (datas[source]) {
+                this.connection[source].set(datas[source])
+            }
         }
     }
 
-    save(datas) {
-        datas = this.presave(datas);
-        this.ref.update(datas);
-    }
-
-    presave(datas) {
-        return datas;
-    }
-
-    callListener(snap) {
-        snap = this.treateDatas(snap)
-        this.data = snap;
+    newDatas() {
+        if (!this.ready) {
+            return;
+        }
+        this.formattedData = this.treateDatas(...Object.values(this.data), this.base);
         if (this.listener) {
-            this.listener(this.data);
+            this.listener(this.formattedData);
         }
     }
 }
 
 class CardReference extends FireReference {
+    constructor(id, base) {
+        super();
+        this.id = id;
+        this.base = base;
+        this.initConnection();
+    }
 
-    treateDatas(data) {
-        data = data.val();
-        if (!(typeof data === "object")) {
-            data = CardReference.newCardModel
+
+
+    get sources() {
+        return {
+            dependancies: "features/dependancies/" + this.id,
+            comments: "features/comments/" + this.id,
+            desc: "features/desc/" + this.id,
+            votes: "features/votes/" + this.id,
+            base: "features/base/" + this.id
+        };
+    }
+
+    get actions() {
+        return {
+            save: values => {
+                if (values.name) {
+                    this.base.name = values.name;
+                }
+                if (values.desc) {
+                    this.data.desc = values.desc;
+                }
+                if (values.dependancies) {
+                    this.data.dependancies = values.dependancies;
+                }
+                this.save();
+            }
         }
+    }
+
+    treateDatas(dependancies, comments, desc, votes, base) {
+        let data = {
+            name: base.name,
+            dependancies: dependancies ?
+                dependancies : this.defaultValues.dependancies,
+            comments: comments ?
+                comments : this.defaultValues.comments,
+            desc: desc ? desc : this.defaultValues.desc,
+            votes: votes ? votes : this.defaultValues.votes
+        };
         return data;
     }
 
-    static get newCardModel() {
+    presave(dependancies, comments, desc, votes, base) {
+        let data = {
+            base: {
+                name: base.name,
+                hasDependendy: !!dependancies.length
+            },
+            dependancies: dependancies ?
+                dependancies : this.defaultValues.dependancies,
+            comments: comments ?
+                comments : this.defaultValues.comments,
+            desc: desc ? desc : this.defaultValues.desc,
+            votes: votes ? votes : this.defaultValues.votes
+        };
+        return data;
+    }
+
+    get defaultValues() {
         return {
-            title: "Empty card",
-            body: ["empty body"],
-            keywords: []
-        }
+            dependancies: [],
+            comments: [],
+            desc: ["new card"],
+            votes: []
+        };
     }
 }
 
 class ListReference extends FireReference {
 
-    treateDatas(snap) {
-        let data = snap.val();
-        data = [...data.keys()];
-        return data;
+    constructor() {
+        super();
+        this.initConnection();
     }
 
-    presave() {
-        throw new Error('save of card list is not authorised')
+    get sources() {
+        return {
+            list: "features/base/"
+        }
+    }
+
+    treateDatas(list) {
+        console.log("data", list)
+        let formattedData = []
+        for (let featureId in list) {
+            formattedData.push({
+                id: featureId,
+                base: list[featureId]
+            })
+        }
+        return formattedData;
+    }
+
+    presave(list) {
+        throw new Error("no list save")
+    }
+
+    get params() {
+        return {
+            list: []
+        }
+    }
+
+    get defaultValues() {
+        return {
+            list: []
+        };
     }
 }
 
-export default new Dao()
+export default new Dao();
