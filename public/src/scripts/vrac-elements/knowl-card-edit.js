@@ -40,7 +40,7 @@ export class KnowlCardEdit extends BaseKCElement {
         let values = {
             name: this.shadowRoot.getElementById("name").value,
             desc: this.shadowRoot.getElementById("desc").value,
-            dependancies: this.shadowRoot.getElementById("dependancies").value.split(', ')
+            dependancies: this.shadowRoot.getElementById("dependancies").value !== "" ? this.shadowRoot.getElementById("dependancies").value.split(', ') : []
         }
         this.ref.actions.save(values);
     }

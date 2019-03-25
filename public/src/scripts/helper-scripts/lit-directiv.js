@@ -1,4 +1,6 @@
-import { directive } from 'https://unpkg.com/lit-html@latest/lit-html.js?module';
+import {
+    directive
+} from 'https://unpkg.com/lit-html@latest/lit-html.js?module';
 
 export const onPushData = directive((ref, content, defaultContent, emptyContent) => part => {
     part.setValue(defaultContent);
@@ -10,4 +12,10 @@ export const onPushData = directive((ref, content, defaultContent, emptyContent)
         }
         part.commit();
     })
+});
+
+export const unsafeHTML = directive(value => part => {
+    const tmp = document.createElement('template');
+    tmp.innerHTML = value;
+    part.setValue(document.importNode(tmp.content, true));
 });

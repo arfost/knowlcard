@@ -1,48 +1,49 @@
 import {
-    BaseKCElement
+  BaseKCElement
 } from '../abstract-elements/kc-base-element.js'
+
 import {
-    html,
-    css
+  html,
+  css
 } from 'https://unpkg.com/@polymer/lit-element@latest/lit-element.js?module';
 import {
-    onPushData
+  onPushData,
+  unsafeHTML
 } from '../helper-scripts/lit-directiv.js';
 import Dao from '../../data.js';
 
 export class KnowlCard extends BaseKCElement {
-    static get is() {
-        return 'knowl-card'
-    }
-    //we need to init values in constructor
-    constructor() {
-        super();
-    }
+  static get is() {
+    return 'knowl-card'
+  }
+  //we need to init values in constructor
+  constructor() {
+    super();
+  }
 
-    static get properties() {
-        return {
-            cardId: String,
-            cardBase: Object
-        }
+  static get properties() {
+    return {
+      cardId: String,
+      cardBase: Object
     }
+  }
 
-    affCard(card) {
-        return html `
+  affCard(card) {
+    return html `
         <div class="title">${card.name}</div>
-        <div class="body">${card.desc}</div>
+        <div class="body content-box vertical">${unsafeHTML(card.desc)}</div>
         <div class="comments">${card.comments.map(part => html`<span>${part}</span>`)}</div>
         <div class="votes">${card.votes.map(part => html`<span>${part}</span>`)}</div>
         <div class="dependancies">${card.dependancies.map(part => html`<span>${part}</span>`)}</div>`;
 
-    }
+  }
 
-    get selfStyles() {
-        return `
+  get selfStyles() {
+    return `
         .card {
             background: #fff;
             border-radius: 2px;
             display: inline-block;
-            height: 300px;
             margin: 1rem;
             position: relative;
             width: 300px;
@@ -59,35 +60,31 @@ export class KnowlCard extends BaseKCElement {
           }
 
           .card .body{
-            display: flex;
-            padding: 0.5em;
+            padding: 1em;
           }
 
           .card .comment{
-            display: flex;
             padding: 0.5em;
           }
 
           .card .votes{
-            display: flex;
             padding: 0.5em;
           }
 
           .card .dependancies{
-            display: flex;
             padding: 0.5em;
           }
           
           .card:hover {
             box-shadow: 0 14px 28px rgba(0,0,0,0.25), 0 10px 10px rgba(0,0,0,0.22);
           }`
-    }
+  }
 
-    render() {
-        if (!this.ref) {
-            this.ref = Dao.getCardRef(this.cardId, this.cardBase);
-        }
-        return html `
+  render() {
+    if (!this.ref) {
+      this.ref = Dao.getCardRef(this.cardId, this.cardBase);
+    }
+    return html `
         ${this.styles}
         <div class="card">
             ${onPushData(
@@ -97,5 +94,5 @@ export class KnowlCard extends BaseKCElement {
             html`card has no datas`
         )}
         </div>`
-    }
+  }
 }
