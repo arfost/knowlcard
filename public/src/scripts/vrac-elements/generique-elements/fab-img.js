@@ -6,9 +6,9 @@ import {
     css
 } from 'https://unpkg.com/@polymer/lit-element@latest/lit-element.js?module';
 
-export class FabButton extends BaseKCElement {
+export class FabImg extends BaseKCElement {
     static get is() {
-        return 'fab-button'
+        return 'fab-img'
     }
     //we need to init values in constructor
     constructor() {
@@ -31,8 +31,8 @@ export class FabButton extends BaseKCElement {
             line-height: 70px;
           
             position: fixed;
-            right: 50px;
-            bottom: 50px;
+            left: 50px;
+            top: 50px;
          }
           
          .fab:hover {

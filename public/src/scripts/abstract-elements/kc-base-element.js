@@ -1,4 +1,8 @@
-import { LitElement, html, css } from 'https://unpkg.com/@polymer/lit-element@latest/lit-element.js?module';
+import {
+    LitElement,
+    html,
+    css
+} from 'https://unpkg.com/@polymer/lit-element@latest/lit-element.js?module';
 
 export class BaseKCElement extends LitElement {
     constructor() {
@@ -14,7 +18,7 @@ export class BaseKCElement extends LitElement {
     }
 
     get styles() {
-        return html`<style>
+        return html `<style>
             ${this.sharedStyles}
             ${this.selfStyles}
         </style>`
@@ -39,7 +43,6 @@ export class BaseKCElement extends LitElement {
             .content-box{
                 justify-content: space-between;
                 display: flex;
-                align-items: center;
                 padding:1em;
             }
             .horizontal{

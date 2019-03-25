@@ -215,4 +215,91 @@ class ListReference extends FireReference {
     }
 }
 
+class LoginReference extends FireReference {
+
+    constructor() {
+        super();
+        firebase.auth().getRedirectResult().then((result) => {
+            if (!result || !result.credential) {
+                return
+            }
+            this.token = result.credential.accessToken;
+            this.email = result.user.email;
+            this.uid = result.user.uid;
+            this.initConnection();
+        }).catch((error) => {
+            console.log("auth error ", error)
+        });
+        firebase.auth().onAuthStateChanged((user) => {
+            if (user) {
+                // User is signed in.
+                this.email = user.email;
+                this.uid = user.uid;
+                // [START_EXCLUDE]
+                // [END_EXCLUDE]
+            } else {
+                this.user = undefined;
+                this.email = undefined;
+                this.uid = undefined;
+            }
+        });
+    }
+
+    get actions() {
+        return {
+            toggleLogin: () => {
+                if (!firebase.auth().currentUser) {
+                    // [START createprovider]
+                    var provider = new firebase.auth.GoogleAuthProvider();
+                    // [END createprovider]
+                    // [START addscopes]
+                    provider.addScope('https://www.googleapis.com/auth/plus.login');
+                    // [END addscopes]
+                    // [START signin]
+                    firebase.auth().signInWithRedirect(provider);
+                    // [END signin]
+                } else {
+                    // [START signout]
+                    firebase.auth().signOut();
+                    // [END signout]
+                }
+            }
+        }
+    }
+
+    get sources() {
+        return {
+            user: "users/" + this.uid
+        }
+    }
+
+    treateDatas(list) {
+        console.log("data", list)
+        let formattedData = []
+        for (let featureId in list) {
+            formattedData.push({
+                id: featureId,
+                base: list[featureId]
+            })
+        }
+        return formattedData;
+    }
+
+    presave(list) {
+        throw new Error("no list save")
+    }
+
+    get params() {
+        return {
+            list: []
+        }
+    }
+
+    get defaultValues() {
+        return {
+            list: []
+        };
+    }
+}
+
 export default new Dao();

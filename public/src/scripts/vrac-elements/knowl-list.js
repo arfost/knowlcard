@@ -63,6 +63,7 @@ export class KnowlList extends BaseKCElement {
             html`error loading the list`
             )}
         <fab-button @click="${this.beginEdition}"></fab-button>
+        <fab-img @click="${this.toggleLogin()}"></fab-img>
         </div>
         <pop-in .hide="${!this.editing}" @close-popin="${this.stopEditing}">
             <knowl-card-edit .cardid="${this.editedId}" .cardBase="${this.editedBase}"></knowl-card-edit>
