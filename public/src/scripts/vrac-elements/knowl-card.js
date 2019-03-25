@@ -19,12 +19,18 @@ export class KnowlCard extends BaseKCElement {
   //we need to init values in constructor
   constructor() {
     super();
+    this.loginRef = Dao.getLoginRef();
+    this.user = this.loginRef.getDefaultValue();
+    this.loginRef.on("value", user => {
+      this.user = user;
+    })
   }
 
   static get properties() {
     return {
       cardId: String,
-      cardBase: Object
+      cardBase: Object,
+      user: Object
     }
   }
 
@@ -32,10 +38,19 @@ export class KnowlCard extends BaseKCElement {
     return html `
         <div class="title">${card.name}</div>
         <div class="body content-box vertical">${unsafeHTML(card.desc)}</div>
-        <div class="comments">${card.comments.map(part => html`<span>${part}</span>`)}</div>
+        <div class="comments content-box vertical">${card.comments.map(part => html`<div><span class="poster">${part.poster} : </span>${part.comment}</div>`)}
+        ${!this.user.isAnonymous ?
+          html`<div class="content-box vertical"><textarea class="body" id="newComment"></textarea><button @click="${this.saveComment}">save</button></div>`
+          : ``}
+          </div>
         <div class="votes">${card.votes.map(part => html`<span>${part}</span>`)}</div>
         <div class="dependancies">${card.dependancies.map(part => html`<span>${part}</span>`)}</div>`;
 
+  }
+
+  saveComment() {
+    this.ref.actions.addComment(this.user.displayName, this.shadowRoot.getElementById("newComment").value);
+    this.shadowRoot.getElementById("newComment").value = "";
   }
 
   get selfStyles() {
@@ -63,8 +78,8 @@ export class KnowlCard extends BaseKCElement {
             padding: 1em;
           }
 
-          .card .comment{
-            padding: 0.5em;
+          .card .comments{
+            padding: 1.5em;
           }
 
           .card .votes{

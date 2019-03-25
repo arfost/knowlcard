@@ -37,8 +37,8 @@ export class FabImg extends BaseKCElement {
             line-height: 70px;
           
             position: fixed;
-            left: 50px;
-            top: 50px;
+            left: 10px;
+            top: 10px;
          }
           
          .fab:hover {

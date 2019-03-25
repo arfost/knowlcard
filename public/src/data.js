@@ -24,6 +24,11 @@ class FireReference {
 
     initConnection() {
         this.data = {};
+        if (this.connection) {
+            for (let connection in this.connection) {
+                this.connection[connection].off();
+            }
+        }
         let connection = {};
         if (this.base) {
             connection.base = this.initSource(this.sources.base, this.params.base);
@@ -90,10 +95,16 @@ class FireReference {
         if (!this.ready) {
             return;
         }
-        this.formattedData = this.treateDatas(...Object.values(this.data), this.base);
+        let deepCopiedData = JSON.parse(JSON.stringify(this.data))
+        this.formattedData = this.treateDatas(...Object.values(deepCopiedData), this.base);
         if (this.listener) {
             this.listener(this.formattedData);
         }
+    }
+
+    getDefaultValue() {
+        let deepCopiedData = JSON.parse(JSON.stringify(this.defaultValues))
+        return this.treateDatas(...Object.values(deepCopiedData), this.base);
     }
 }
 
@@ -130,6 +141,16 @@ class CardReference extends FireReference {
                     this.data.dependancies = values.dependancies;
                 }
                 this.save();
+            },
+            addComment: (poster, comment) => {
+                this.data.comments = this.data.comments ? [...this.data.comments, {
+                    poster,
+                    comment
+                }] : [{
+                    poster,
+                    comment
+                }];
+                this.save();
             }
         }
     }
@@ -151,7 +172,7 @@ class CardReference extends FireReference {
         let data = {
             base: {
                 name: base.name,
-                hasDependendy: !!dependancies.length
+                hasDependendy: !!dependancies
             },
             dependancies: dependancies ?
                 dependancies : this.defaultValues.dependancies,
@@ -222,14 +243,21 @@ class LoginReference extends FireReference {
             console.log("state changed : ", user)
             if (user) {
                 // User is signed in.
-                this.email = user.email;
                 this.uid = user.uid;
+
+                this.initConnection();
+                this.actions.setUser({
+                    email: user.email,
+                    displayName: user.displayName,
+                    isAnonymous: user.isAnonymous,
+                    photoURL: user.photoURL
+                })
                 // [START_EXCLUDE]
                 // [END_EXCLUDE]
             } else {
-                this.user = undefined;
-                this.email = undefined;
-                this.uid = undefined;
+                this.uid = "noConnection";
+                this.initConnection();
+                this.actions.emptyUser();
             }
         });
     }
@@ -252,21 +280,34 @@ class LoginReference extends FireReference {
                     firebase.auth().signOut();
                     // [END signout]
                 }
+            },
+            setUser: user => {
+                this.data.user = user;
+                this.save();
+            },
+            emptyUser: () => {
+                if (this.data) {
+                    this.data.user = this.defaultValues.user;
+                    this.data.permission = [];
+                }
             }
         }
     }
 
     get sources() {
         return {
-            user: "users/" + this.uid
+            user: "users/" + this.uid,
+            permissions: "permissions/" + this.uid
         }
     }
 
-    treateDatas(user) {
+    treateDatas(user, permissions) {
+        user = user ? user : this.defaultValues.user;
+        user.permissions = permissions ? permissions : [];
         return user;
     }
 
-    presave(data) {
+    presave(user) {
         return {
             user
         }
@@ -274,7 +315,12 @@ class LoginReference extends FireReference {
 
     get defaultValues() {
         return {
-            user: {}
+            user: {
+                email: "anonymous@anonymous.com",
+                displayName: "anonymous",
+                isAnonymous: true,
+                photoURL: "https://avatars0.githubusercontent.com/u/4815524?s=400&u=2c96e55bfde2464f97ee05ddcdb2abbb32a3fe97&v=4"
+            }
         };
     }
 }

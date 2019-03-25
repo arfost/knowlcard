@@ -20,7 +20,8 @@ export class KnowlList extends BaseKCElement {
         super();
         this.editing = false;
         this.loginRef = Dao.getLoginRef();
-        this.loginRef.on("value", user=>{
+        this.user = this.loginRef.getDefaultValue();
+        this.loginRef.on("value", user => {
             this.user = user;
         })
     }
@@ -31,14 +32,14 @@ export class KnowlList extends BaseKCElement {
             editing: Boolean,
             editedId: String,
             editedBase: Object,
-            user:Object
+            user: Object
         }
     }
 
     get selfStyles() {
         return `
         .list{
-            background: #e2e1e0;
+            
         }`
     }
 
@@ -56,7 +57,7 @@ export class KnowlList extends BaseKCElement {
         this.editedBase = undefined;
     }
 
-    toggleLogin(){
+    toggleLogin() {
         //console.log("toutoutout")
         this.loginRef.actions.toggleLogin();
     }
@@ -71,8 +72,8 @@ export class KnowlList extends BaseKCElement {
             html`loading`,
             html`error loading the list`
             )}
-        <fab-button @click="${this.beginCreation}"></fab-button>
-        <fab-img @click="${this.toggleLogin}"></fab-img>
+        ${this.user.permissions.includes('addNew') ? html`<fab-button @click="${this.beginCreation}"></fab-button>`:``}
+        <fab-img @click="${this.toggleLogin}" .src="${this.user.photoURL}"></fab-img>
         </div>
         <pop-in .hide="${!this.editing}" @close-popin="${this.stopEditing}">
             <knowl-card-edit .cardid="${this.editedId}" .cardBase="${this.editedBase}"></knowl-card-edit>
