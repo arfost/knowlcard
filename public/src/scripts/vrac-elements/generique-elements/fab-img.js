@@ -15,6 +15,12 @@ export class FabImg extends BaseKCElement {
         super();
     }
 
+    static get properties() {
+        return {
+            src: String
+        }
+    }
+
     get selfStyles() {
         return `
         .fab {
@@ -44,6 +50,6 @@ export class FabImg extends BaseKCElement {
     render() {
         return html `
         ${this.styles}
-        <div class="fab"> + </div>`
+        <img src="${this.src}" class="fab">`
     }
 }

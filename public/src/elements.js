@@ -23,5 +23,6 @@ export default [
     KnowlList,
     KnowlCardEdit,
     PopIn,
-    FabButton
+    FabButton,
+    FabImg
 ]

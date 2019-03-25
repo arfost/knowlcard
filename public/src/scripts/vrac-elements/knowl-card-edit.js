@@ -43,6 +43,10 @@ export class KnowlCardEdit extends BaseKCElement {
             dependancies: this.shadowRoot.getElementById("dependancies").value !== "" ? this.shadowRoot.getElementById("dependancies").value.split(', ') : []
         }
         this.ref.actions.save(values);
+        let event = new CustomEvent('close-popin', {
+            detail: false
+        });
+        this.dispatchEvent(event);
     }
 
     get selfStyles() {
@@ -56,7 +60,6 @@ export class KnowlCardEdit extends BaseKCElement {
     }
 
     render() {
-        console.log(this.cardBase, this.cardid)
         if (this.cardid === undefined || this.cardBase === undefined) {
             return html `<div class="card">no card selected</div>`
         }

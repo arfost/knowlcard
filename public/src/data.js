@@ -10,6 +10,10 @@ class Dao {
     getCardRef(id, base) {
         return new CardReference(id, base);
     }
+
+    getLoginRef() {
+        return new LoginReference();
+    }
 }
 
 class FireReference {
@@ -19,7 +23,6 @@ class FireReference {
     }
 
     initConnection() {
-        console.log('instance', this.id)
         this.data = {};
         let connection = {};
         if (this.base) {
@@ -33,12 +36,10 @@ class FireReference {
             connection[source] = this.initSource(this.sources[source], this.params[source]);
             connection[source].on('value', snap => {
                 let tmp = snap.val();
-                console.log("bug incoming ? ", this.id, tmp, source, this.data);
                 this.data[source] = tmp;
                 this.newDatas();
             })
         }
-        console.log("data pret", this.id, this.data)
         this.connection = connection;
         this.ready = true;;
         this.newDatas();
@@ -79,7 +80,6 @@ class FireReference {
     save() {
         let datas = this.presave(...Object.values(this.data), this.base);
         for (let source in this.connection) {
-            console.log("saving ", source, datas[source])
             if (datas[source]) {
                 this.connection[source].set(datas[source])
             }
@@ -187,7 +187,6 @@ class ListReference extends FireReference {
     }
 
     treateDatas(list) {
-        console.log("data", list)
         let formattedData = []
         for (let featureId in list) {
             formattedData.push({
@@ -219,18 +218,8 @@ class LoginReference extends FireReference {
 
     constructor() {
         super();
-        firebase.auth().getRedirectResult().then((result) => {
-            if (!result || !result.credential) {
-                return
-            }
-            this.token = result.credential.accessToken;
-            this.email = result.user.email;
-            this.uid = result.user.uid;
-            this.initConnection();
-        }).catch((error) => {
-            console.log("auth error ", error)
-        });
         firebase.auth().onAuthStateChanged((user) => {
+            console.log("state changed : ", user)
             if (user) {
                 // User is signed in.
                 this.email = user.email;
@@ -273,31 +262,19 @@ class LoginReference extends FireReference {
         }
     }
 
-    treateDatas(list) {
-        console.log("data", list)
-        let formattedData = []
-        for (let featureId in list) {
-            formattedData.push({
-                id: featureId,
-                base: list[featureId]
-            })
-        }
-        return formattedData;
+    treateDatas(user) {
+        return user;
     }
 
-    presave(list) {
-        throw new Error("no list save")
-    }
-
-    get params() {
+    presave(data) {
         return {
-            list: []
+            user
         }
     }
 
     get defaultValues() {
         return {
-            list: []
+            user: {}
         };
     }
 }
