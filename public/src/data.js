@@ -46,7 +46,7 @@ class FireReference {
             })
         }
         this.connection = connection;
-        this.ready = true;;
+        this.ready = true;
         this.newDatas();
     }
 
@@ -159,9 +159,9 @@ class CardReference extends FireReference {
         let data = {
             name: base.name,
             dependancies: dependancies ?
-                dependancies : this.defaultValues.dependancies,
+                dependancies.filter(el => !!el) : this.defaultValues.dependancies,
             comments: comments ?
-                comments : this.defaultValues.comments,
+                comments.filter(comm => !!comm) : this.defaultValues.comments,
             desc: desc ? desc : this.defaultValues.desc,
             votes: votes ? votes : this.defaultValues.votes
         };

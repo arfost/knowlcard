@@ -38,7 +38,7 @@ export class KnowlCard extends BaseKCElement {
     return html `
         <div class="title">${card.name}</div>
         <div class="body content-box vertical">${unsafeHTML(card.desc)}</div>
-        <div class="comments content-box vertical">${card.comments.map(part => html`<div><span class="poster">${part.poster} : </span>${part.comment}</div>`)}
+        <div class="comments content-box vertical">${card.comments.map(part => html`<knowl-comment .comment="${part}"></knowl-comment>`)}
         ${!this.user.isAnonymous ?
           html`<div class="content-box vertical"><textarea class="body" id="newComment"></textarea><button @click="${this.saveComment}">save</button></div>`
           : ``}

@@ -1,6 +1,7 @@
 node_modules
+.firebase/
+**/hosting.*
 functions/node_modules
 firebase-debug.log
-.firebase/
 spt
 .scannerwork/

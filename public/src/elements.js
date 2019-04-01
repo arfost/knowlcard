@@ -8,6 +8,9 @@ import {
     KnowlList
 } from './scripts/vrac-elements/knowl-list.js';
 import {
+    KnowlComment
+} from './scripts/vrac-elements/knowl-comment.js';
+import {
     PopIn
 } from './scripts/vrac-elements/generique-elements/pop-in.js';
 import {
@@ -24,5 +27,6 @@ export default [
     KnowlCardEdit,
     PopIn,
     FabButton,
-    FabImg
+    FabImg,
+    KnowlComment
 ]
