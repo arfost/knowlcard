@@ -43,7 +43,7 @@ export class KnowlCard extends BaseKCElement {
         html`<div class="content-box vertical"><textarea class="body" id="newComment"></textarea><button @click="${this.saveComment}">save</button></div>`
         : ``}
           </div>
-        <div class="votes content-box horizontal"><span>votes : ${card.currentVotes.length}</span>${!this.user.asVoted ? html`<button @click="${this.vote}" > +1</button >`:``}</div>
+        <div class="votes content-box horizontal"><span>votes : ${card.currentVotes.length}</span>${!this.user.isAnonymous&&!this.user.asVoted ? html`<button @click="${this.vote}" > +1</button >`:``}</div>
         <div class="dependancies">${card.dependancies.map(part => html`<span>${part}</span>`)}</div>`;
   }
 
