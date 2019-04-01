@@ -40,17 +40,22 @@ export class KnowlCard extends BaseKCElement {
         <div class="body content-box vertical">${unsafeHTML(card.desc)}</div>
         <div class="comments content-box vertical">${card.comments.map(part => html`<knowl-comment .comment="${part}"></knowl-comment>`)}
         ${!this.user.isAnonymous ?
-          html`<div class="content-box vertical"><textarea class="body" id="newComment"></textarea><button @click="${this.saveComment}">save</button></div>`
-          : ``}
+        html`<div class="content-box vertical"><textarea class="body" id="newComment"></textarea><button @click="${this.saveComment}">save</button></div>`
+        : ``}
           </div>
-        <div class="votes">${card.votes.map(part => html`<span>${part}</span>`)}</div>
+        <div class="votes content-box horizontal"><span>votes : ${card.currentVotes.length}</span>${!this.user.asVoted ? html`<button @click="${this.vote}" > +1</button >`:``}</div>
         <div class="dependancies">${card.dependancies.map(part => html`<span>${part}</span>`)}</div>`;
-
   }
 
   saveComment() {
-    this.ref.actions.addComment(this.user.displayName, this.shadowRoot.getElementById("newComment").value);
-    this.shadowRoot.getElementById("newComment").value = "";
+    if (this.shadowRoot.getElementById("newComment").value) {
+      this.ref.actions.addComment(this.user.displayName, this.shadowRoot.getElementById("newComment").value);
+      this.shadowRoot.getElementById("newComment").value = "";
+    }
+  }
+
+  vote() {
+    this.ref.actions.vote(this.user.uid);
   }
 
   get selfStyles() {

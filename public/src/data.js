@@ -41,7 +41,7 @@ class FireReference {
             connection[source] = this.initSource(this.sources[source], this.params[source]);
             connection[source].on('value', snap => {
                 let tmp = snap.val();
-                this.data[source] = tmp;
+                this.data[source] = tmp ? tmp : this.defaultValues[source];
                 this.newDatas();
             })
         }
@@ -84,11 +84,19 @@ class FireReference {
 
     save() {
         let datas = this.presave(...Object.values(this.data), this.base);
-        for (let source in this.connection) {
+        var updates = {};
+        for (let source in this.sources) {
             if (datas[source]) {
-                this.connection[source].set(datas[source])
+                if (typeof datas[source] === "object") {
+                    for (let node in datas[source]) {
+                        updates[this.sources[source] + "/" + node] = datas[source][node];
+                    }
+                } else {
+                    updates[this.sources[source]] = datas[source];
+                }
             }
         }
+        firebase.database().ref().update(updates);
     }
 
     newDatas() {
@@ -106,6 +114,15 @@ class FireReference {
         let deepCopiedData = JSON.parse(JSON.stringify(this.defaultValues))
         return this.treateDatas(...Object.values(deepCopiedData), this.base);
     }
+
+    pushToData(source, datas) {
+        if (typeof this.data[source] === "object") {
+            let key = firebase.app().database().ref(this.sources[source]).push().key;
+            this.data[source][key] = datas;
+        } else {
+            throw new Error("Raw firebase datas must be an object of firebase node with firebase key as properties");
+        }
+    }
 }
 
 class CardReference extends FireReference {
@@ -116,14 +133,21 @@ class CardReference extends FireReference {
         this.initConnection();
     }
 
-
+    get params() {
+        return {
+            votes: {
+                orderByChild: "card",
+                equalTo: this.id
+            }
+        }
+    }
 
     get sources() {
         return {
             dependancies: "features/dependancies/" + this.id,
             comments: "features/comments/" + this.id,
             desc: "features/desc/" + this.id,
-            votes: "features/votes/" + this.id,
+            votes: "features/votes/",
             base: "features/base/" + this.id
         };
     }
@@ -151,6 +175,14 @@ class CardReference extends FireReference {
                     comment
                 }];
                 this.save();
+            },
+            vote: (poster) => {
+                this.pushToData("votes", {
+                    card: this.id,
+                    poster: poster,
+                    date: Date.now()
+                })
+                this.save();
             }
         }
     }
@@ -158,12 +190,11 @@ class CardReference extends FireReference {
     treateDatas(dependancies, comments, desc, votes, base) {
         let data = {
             name: base.name,
-            dependancies: dependancies ?
-                dependancies.filter(el => !!el) : this.defaultValues.dependancies,
-            comments: comments ?
-                comments.filter(comm => !!comm) : this.defaultValues.comments,
+            dependancies: dependancies.filter(el => !!el),
+            comments: comments.filter(comm => !!comm),
             desc: desc ? desc : this.defaultValues.desc,
-            votes: votes ? votes : this.defaultValues.votes
+            votes: votes ? Object.values(votes) : this.defaultValues.votes,
+            currentVotes: votes ? Object.values(votes) : this.defaultValues.votes
         };
         return data;
     }
@@ -174,12 +205,10 @@ class CardReference extends FireReference {
                 name: base.name,
                 hasDependendy: !!dependancies
             },
-            dependancies: dependancies ?
-                dependancies : this.defaultValues.dependancies,
-            comments: comments ?
-                comments : this.defaultValues.comments,
-            desc: desc ? desc : this.defaultValues.desc,
-            votes: votes ? votes : this.defaultValues.votes
+            dependancies: dependancies,
+            comments: comments,
+            desc: desc,
+            votes: votes
         };
         return data;
     }
@@ -189,7 +218,7 @@ class CardReference extends FireReference {
             dependancies: [],
             comments: [],
             desc: ["new card"],
-            votes: []
+            votes: {}
         };
     }
 }
@@ -220,12 +249,6 @@ class ListReference extends FireReference {
 
     presave(list) {
         throw new Error("no list save")
-    }
-
-    get params() {
-        return {
-            list: []
-        }
     }
 
     get defaultValues() {
@@ -297,12 +320,16 @@ class LoginReference extends FireReference {
     get sources() {
         return {
             user: "users/" + this.uid,
+            votes: "features/votes/",
             permissions: "permissions/" + this.uid
         }
     }
 
-    treateDatas(user, permissions) {
+    treateDatas(user, votes, permissions) {
         user = user ? user : this.defaultValues.user;
+        user.uid = this.uid;
+        user.votes = Object.values(votes);
+        user.asVoted = !!user.votes.length
         user.permissions = permissions ? permissions : [];
         return user;
     }
@@ -313,6 +340,15 @@ class LoginReference extends FireReference {
         }
     }
 
+    get params() {
+        return {
+            votes: {
+                orderByChild: "poster",
+                equalTo: this.uid
+            }
+        }
+    }
+
     get defaultValues() {
         return {
             user: {
@@ -320,7 +356,8 @@ class LoginReference extends FireReference {
                 displayName: "anonymous",
                 isAnonymous: true,
                 photoURL: "https://avatars0.githubusercontent.com/u/4815524?s=400&u=2c96e55bfde2464f97ee05ddcdb2abbb32a3fe97&v=4"
-            }
+            },
+            votes: {}
         };
     }
 }
